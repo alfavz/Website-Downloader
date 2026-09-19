@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>alfavz.dl</title>
+<style>
+  :root {
+    --bg:#0e0e10;--surface:#18181b;--surface2:#212125;--border:#2a2a2f;
+    --accent:#7c6aff;--accent2:#5eead4;--text:#e4e4e7;--muted:#71717a;
+    --error:#f87171;--success:#4ade80;--radius:12px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center}
+  header{width:100%;padding:18px 32px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+  .logo{font-size:1.1rem;font-weight:700;letter-spacing:-.5px}
+  .logo span{color:var(--accent)}
+  .badge{font-size:.65rem;background:var(--surface2);border:1px solid var(--border);padding:2px 8px;border-radius:99px;color:var(--muted)}
+  main{width:100%;max-width:680px;padding:48px 20px 80px;flex:1}
+  h1{font-size:2rem;font-weight:700;letter-spacing:-1px;margin-bottom:6px;line-height:1.2}
+  h1 span{color:var(--accent)}
+  .subtitle{color:var(--muted);font-size:.9rem;margin-bottom:32px}
+  .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+  .tab{padding:7px 16px;border-radius:99px;border:1px solid var(--border);background:var(--surface);color:var(--muted);font-size:.82rem;font-weight:500;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:6px}
+  .tab:hover{border-color:var(--accent);color:var(--text)}
+  .tab.active{background:var(--accent);border-color:var(--accent);color:#fff}
+  .tab .dot{width:7px;height:7px;border-radius:50%;background:currentColor;opacity:.6}
+  .input-wrap{display:flex;gap:10px;margin-bottom:12px}
+  input[type=text]{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:13px 16px;color:var(--text);font-size:.92rem;outline:none;transition:border-color .15s}
+  input[type=text]:focus{border-color:var(--accent)}
+  input[type=text]::placeholder{color:var(--muted)}
+  button.btn{padding:13px 22px;border-radius:var(--radius);border:none;background:var(--accent);color:#fff;font-size:.9rem;font-weight:600;cursor:pointer;transition:opacity .15s,transform .1s;white-space:nowrap;display:flex;align-items:center;gap:8px}
+  button.btn:hover{opacity:.85}
+  button.btn:active{transform:scale(.97)}
+  button.btn:disabled{opacity:.4;cursor:not-allowed}
+  .hint{font-size:.78rem;color:var(--muted)}
+  #result{margin-top:28px}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+  .preview{width:100%;background:#000;position:relative;min-height:180px;display:flex;align-items:center;justify-content:center}
+  .preview img{width:100%;max-height:360px;object-fit:cover;display:block}
+  .slideshow{position:relative;overflow:hidden}
+  .slides{display:flex;transition:transform .3s ease}
+  .slides img{width:100%;flex-shrink:0;max-height:360px;object-fit:cover}
+  .slide-btn{position:absolute;top:50%;transform:translateY(-50%);background:rgba(0,0,0,.6);border:none;color:#fff;width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:1.1rem;display:flex;align-items:center;justify-content:center;z-index:2;transition:background .15s}
+  .slide-btn:hover{background:rgba(0,0,0,.85)}
+  .slide-prev{left:10px}.slide-next{right:10px}
+  .slide-counter{position:absolute;bottom:10px;right:12px;background:rgba(0,0,0,.6);color:#fff;font-size:.75rem;padding:2px 8px;border-radius:99px}
+  .card-body{padding:18px 20px}
+  .card-title{font-weight:600;font-size:.98rem;margin-bottom:4px;line-height:1.4}
+  .card-meta{font-size:.78rem;color:var(--muted);margin-bottom:16px;display:flex;flex-wrap:wrap;gap:10px}
+  .card-meta span{display:flex;align-items:center;gap:4px}
+  .dl-buttons{display:flex;flex-wrap:wrap;gap:10px}
+  .dl-btn{flex:1;min-width:120px;padding:11px 18px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:.85rem;font-weight:500;cursor:pointer;text-align:center;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:7px;transition:all .15s}
+  .dl-btn:hover{border-color:var(--accent2);color:var(--accent2)}
+  .dl-btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  .dl-btn.primary:hover{opacity:.85}
+  .loading{display:flex;flex-direction:column;align-items:center;gap:14px;padding:48px 0;color:var(--muted);font-size:.9rem}
+  .spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .error-box{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.3);border-radius:var(--radius);padding:16px 20px;color:var(--error);font-size:.88rem;display:flex;align-items:center;gap:10px}
+  .track-list{display:flex;flex-direction:column;gap:6px;max-height:260px;overflow-y:auto;margin-bottom:12px}
+  .track-item{display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--surface2);border-radius:8px}
+  footer{padding:20px;font-size:.75rem;color:var(--muted);text-align:center}
+  @media(max-width:480px){h1{font-size:1.5rem}.input-wrap{flex-direction:column}button.btn{justify-content:center}}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">alfavz<span>.</span>dl</div>
+  <span class="badge">BETA</span>
+</header>
+<main>
+  <h1>Download <span>anything.</span></h1>
+  <p class="subtitle">TikTok · Instagram · Spotify · Threads · CapCut — tanpa watermark</p>
+  <div class="tabs" id="tabs">
+    <button class="tab active" data-platform="tiktok"><span class="dot"></span>TikTok</button>
+    <button class="tab" data-platform="instagram"><span class="dot"></span>Instagram</button>
+    <button class="tab" data-platform="spotify"><span class="dot"></span>Spotify</button>
+    <button class="tab" data-platform="threads"><span class="dot"></span>Threads</button>
+    <button class="tab" data-platform="capcut"><span class="dot"></span>CapCut</button>
+  </div>
+  <div class="input-wrap">
+    <input type="text" id="urlInput" placeholder="Paste link di sini..." autocomplete="off"/>
+    <button class="btn" id="fetchBtn" onclick="handleFetch()">
+      <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3"/></svg>
+      Ambil
+    </button>
+  </div>
+  <p class="hint" id="hintText">Masukkan link TikTok — video atau slideshow</p>
+  <div id="result"></div>
+</main>
+<footer>Powered by <strong>alfavz API</strong> & <strong>Hazel API</strong></footer>
+
+<script>
+// Semua request lewat proxy /api/proxy?target=...
+// Di local: ganti BASE_PROXY ke '' (langsung fetch API) untuk testing
+const BASE_PROXY = '/api/proxy?target=';
+const FAREZA = 'https://api.fareza.eu.cc';
+
+let activePlatform = 'tiktok';
+let slideIndex = 0;
+
+const hints = {
+  tiktok:    'Masukkan link TikTok — video atau slideshow',
+  instagram: 'Link post, reel, atau carousel Instagram',
+  spotify:   'Link track, album, atau playlist Spotify',
+  threads:   'Link post Threads',
+  capcut:    'Link template CapCut',
+};
+
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    activePlatform = tab.dataset.platform;
+    document.getElementById('hintText').textContent = hints[activePlatform];
+    document.getElementById('urlInput').value = '';
+    document.getElementById('result').innerHTML = '';
+  });
+});
+
+// Proxy fetch helper
+async function apiFetch(url) {
+  const proxied = BASE_PROXY + encodeURIComponent(url);
+  const res = await fetch(proxied);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+}
+
+async function handleFetch() {
+  const url = document.getElementById('urlInput').value.trim();
+  if (!url) return;
+  const btn = document.getElementById('fetchBtn');
+  btn.disabled = true;
+  showLoading();
+  try {
+    switch (activePlatform) {
+      case 'tiktok':    await fetchTikTok(url);    break;
+      case 'instagram': await fetchInstagram(url); break;
+      case 'spotify':   await fetchSpotify(url);   break;
+      case 'threads':   await fetchThreads(url);   break;
+      case 'capcut':    await fetchCapCut(url);    break;
+    }
+  } catch(e) {
+    showError(e.message || 'Terjadi kesalahan, coba lagi.');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+document.getElementById('urlInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') handleFetch();
+});
+
+// ── Fetchers ──────────────────────────────────────────────────────────────────
+
+async function fetchTikTok(url) {
+  const data = await apiFetch(`${FAREZA}/download/tiktok?url=${encodeURIComponent(url)}`);
+  if (!data.status) throw new Error('Gagal mengambil data TikTok');
+  const r = data.result;
+  if (r.isSlide && Array.isArray(r.result)) {
+    renderSlideshow({ title: r.title, author: r.author, images: r.result, audio: r.audio });
+  } else {
+    renderVideoResult({
+      title: r.title,
+      author: r.author?.name || r.author,
+      thumb: r.cover,
+      duration: r.duration ? `${r.duration}s` : null,
+      stats: r.stats,
+      videoUrl: r.download_url || r.video_url,
+      audioUrl: r.music_url,
+    });
+  }
+}
+
+async function fetchInstagram(url) {
+  const data = await apiFetch(`${FAREZA}/download/instagram?url=${encodeURIComponent(url)}`);
+  if (!data.status) throw new Error('Gagal mengambil data Instagram');
+  const r = data.result?.result || data.result;
+  const media = r.media || [];
+  const videos = r.videos || [];
+  const type = r.type;
+  const author = r.author?.handle ? `@${r.author.handle}` : r.author?.name;
+
+  if (type === 'photo' && media.length > 1) {
+    renderSlideshow({ title: r.text?.slice(0,100), author, images: media.map(m => m.url) });
+  } else if (type === 'photo') {
+    renderImageResult({ title: r.text?.slice(0,100), author, imageUrl: media[0]?.url });
+  } else {
+    const vid = videos[0]?.url || media[0]?.url;
+    renderVideoResult({ title: r.text?.slice(0,100), author, thumb: media[0]?.url, videoUrl: vid });
+  }
+}
+
+async function fetchSpotify(url) {
+  const type = url.includes('/track/') ? 'track'
+             : url.includes('/album/') ? 'album'
+             : url.includes('/playlist/') ? 'playlist' : null;
+  if (!type) throw new Error('Link Spotify tidak valid');
+
+  if (type === 'track') {
+    const data = await apiFetch(`${FAREZA}/download/spotify?url=${encodeURIComponent(url)}`);
+    if (!data.status) throw new Error('Gagal mengambil data Spotify');
+    renderSpotifyTrack(data.result);
+  } else {
+    const data = await apiFetch(`${FAREZA}/search/spotify?q=${encodeURIComponent(url)}`);
+    if (!data.status) throw new Error('Gagal mengambil data album/playlist');
+    renderSpotifyAlbum(data.result, type);
+  }
+}
+
+async function fetchThreads(url) {
+  const data = await apiFetch(`${FAREZA}/download/threads?url=${encodeURIComponent(url)}`);
+  if (!data.status) throw new Error('Gagal mengambil data Threads');
+  const r = data.result?.data || data.result;
+  const medias = r.medias || [];
+  const first = medias[0];
+  if (!first) throw new Error('Tidak ada media ditemukan');
+  if (first.videos?.length > 0) {
+    renderVideoResult({ title: r.text, author: r.username ? `@${r.username}` : null, thumb: first.cover, videoUrl: first.videos[0].url });
+  } else if (first.images?.length > 0) {
+    renderSlideshow({ title: r.text, author: r.username ? `@${r.username}` : null, images: first.images.map(i => i.url || i) });
+  } else {
+    throw new Error('Format konten tidak dikenali');
+  }
+}
+
+async function fetchCapCut(url) {
+  const data = await apiFetch(`${FAREZA}/download/capcut?url=${encodeURIComponent(url)}`);
+  if (!data.status) throw new Error('Gagal mengambil data CapCut');
+  const r = data.result;
+  renderVideoResult({ title: r.title, author: r.author, thumb: r.thumbnail, videoUrl: r.video, stats: r.uses ? { play: `${r.uses} uses` } : null });
+}
+
+// ── Renderers ─────────────────────────────────────────────────────────────────
+
+function renderVideoResult({ title, author, thumb, duration, stats, videoUrl, audioUrl }) {
+  document.getElementById('result').innerHTML = `
+    <div class="card">
+      <div class="preview">
+        ${thumb ? `<img src="${thumb}" alt="thumb" onerror="this.style.display='none'">` : '<div style="color:var(--muted);font-size:2rem">▶</div>'}
+      </div>
+      <div class="card-body">
+        <div class="card-title">${esc(title||'Tanpa judul')}</div>
+        <div class="card-meta">
+          ${author?`<span>👤 ${esc(author)}</span>`:''}
+          ${duration?`<span>⏱ ${esc(duration)}</span>`:''}
+          ${stats?.play?`<span>▶ ${esc(stats.play)}</span>`:''}
+          ${stats?.like?`<span>♡ ${esc(stats.like)}</span>`:''}
+        </div>
+        <div class="dl-buttons">
+          ${videoUrl?`<a class="dl-btn primary" href="${videoUrl}" target="_blank" download>
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3"/></svg>
+            Download Video
+          </a>`:''}
+          ${audioUrl?`<a class="dl-btn" href="${audioUrl}" target="_blank" download>🎵 Download Audio</a>`:''}
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderImageResult({ title, author, imageUrl }) {
+  document.getElementById('result').innerHTML = `
+    <div class="card">
+      <div class="preview"><img src="${imageUrl}" alt="image"></div>
+      <div class="card-body">
+        <div class="card-title">${esc(title||'Tanpa caption')}</div>
+        <div class="card-meta">${author?`<span>👤 ${esc(author)}</span>`:''}</div>
+        <div class="dl-buttons">
+          <a class="dl-btn primary" href="${imageUrl}" target="_blank" download>
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3"/></svg>
+            Download Foto
+          </a>
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderSlideshow({ title, author, images, audio }) {
+  slideIndex = 0;
+  const imgTags = images.map(url => `<img src="${url}" alt="slide" onerror="this.style.display='none'">`).join('');
+  document.getElementById('result').innerHTML = `
+    <div class="card">
+      <div class="preview slideshow">
+        <div class="slides" id="slides">${imgTags}</div>
+        ${images.length > 1 ? `
+          <button class="slide-btn slide-prev" onclick="slide(-1)">‹</button>
+          <button class="slide-btn slide-next" onclick="slide(1)">›</button>
+          <div class="slide-counter" id="slideCounter">1 / ${images.length}</div>` : ''}
+      </div>
+      <div class="card-body">
+        <div class="card-title">${esc(title||'Slideshow')}</div>
+        <div class="card-meta">
+          ${author?`<span>👤 ${esc(author)}</span>`:''}
+          <span>🖼 ${images.length} foto</span>
+        </div>
+        <div class="dl-buttons">
+          ${images.map((url,i)=>`<a class="dl-btn" href="${url}" target="_blank" download>⬇ Foto ${i+1}</a>`).join('')}
+          ${audio?`<a class="dl-btn" href="${audio}" target="_blank" download>🎵 Audio</a>`:''}
+        </div>
+      </div>
+    </div>`;
+}
+
+function slide(dir) {
+  const slides = document.getElementById('slides');
+  const imgs = slides.querySelectorAll('img');
+  slideIndex = (slideIndex + dir + imgs.length) % imgs.length;
+  slides.style.transform = `translateX(-${slideIndex * 100}%)`;
+  document.getElementById('slideCounter').textContent = `${slideIndex+1} / ${imgs.length}`;
+}
+
+function renderSpotifyTrack(r) {
+  document.getElementById('result').innerHTML = `
+    <div class="card">
+      <div class="preview" style="max-height:220px">
+        ${r.cover?`<img src="${r.cover}" alt="cover" style="max-height:220px;object-fit:cover">`:''}
+      </div>
+      <div class="card-body">
+        <div class="card-title">${esc(r.title||'Tanpa judul')}</div>
+        <div class="card-meta">
+          ${r.artist?`<span>🎤 ${esc(r.artist)}</span>`:''}
+          ${r.album?`<span>💿 ${esc(r.album)}</span>`:''}
+          ${r.duration?`<span>⏱ ${esc(r.duration)}</span>`:''}
+          ${r.releaseDate?`<span>📅 ${r.releaseDate}</span>`:''}
+        </div>
+        <div class="dl-buttons">
+          ${r.downloadLink
+            ? `<a class="dl-btn primary" href="${r.downloadLink}" target="_blank" download>
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3"/></svg>
+                Download MP3
+              </a>`
+            : `<span style="color:var(--muted);font-size:.85rem">Link download tidak tersedia</span>`}
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderSpotifyAlbum(r, type) {
+  const tracks = r.tracks || [];
+  const artists = (r.artists||[]).map(a=>a.name).join(', ');
+  const cover = r.images?.[2]?.url || r.images?.[0]?.url || '';
+  document.getElementById('result').innerHTML = `
+    <div class="card">
+      <div class="preview" style="max-height:220px">
+        ${cover?`<img src="${cover}" alt="cover" style="max-height:220px;object-fit:cover">`:''}
+      </div>
+      <div class="card-body">
+        <div class="card-title">${esc(r.name||type)}</div>
+        <div class="card-meta">
+          ${artists?`<span>🎤 ${esc(artists)}</span>`:''}
+          <span>🎵 ${tracks.length} track</span>
+          ${r.release_date?`<span>📅 ${r.release_date.slice(0,4)}</span>`:''}
+        </div>
+        <p style="font-size:.8rem;color:var(--muted);margin-bottom:12px">Download semua track pakai <code style="color:var(--accent)">spotify_dl.py</code></p>
+        <div class="track-list">
+          ${tracks.map((t,i)=>`
+            <div class="track-item">
+              <span style="color:var(--muted);font-size:.75rem;min-width:18px">${i+1}</span>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:.85rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(t.name)}</div>
+                <div style="font-size:.72rem;color:var(--muted)">${(t.artists||[]).map(a=>a.name).join(', ')}</div>
+              </div>
+              <a href="${t.url}" target="_blank" style="font-size:.72rem;color:var(--accent);text-decoration:none">↗</a>
+            </div>`).join('')}
+        </div>
+      </div>
+    </div>`;
+}
+
+function showLoading() {
+  document.getElementById('result').innerHTML = `
+    <div class="loading"><div class="spinner"></div><span>Mengambil data...</span></div>`;
+}
+
+function showError(msg) {
+  document.getElementById('result').innerHTML = `
+    <div class="error-box"><span>⚠</span> ${esc(msg)}</div>`;
+}
+
+function esc(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
